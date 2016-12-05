@@ -52,7 +52,7 @@ services:
   marathon:
     build:
       context: .
-      dockerfile: marathon.Dockerfile
+      dockerfile: Dockerfile.marathon
     # image: mesosphere/marathon:latest
     ports:
       - "8080"
