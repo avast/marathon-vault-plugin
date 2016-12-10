@@ -27,8 +27,15 @@ repositories {
     }
 }
 
+task bundle(type: Tar) {
+    into("") {
+        from project.configurations.runtime
+        from project.tasks.jar
+    }
+}
+
 dockerCompose.isRequiredBy(test)
-composeUp.dependsOn(jar)
+composeUp.dependsOn(bundle)
 
 dockerCompose {
     waitForTcpPortsTimeout = java.time.Duration.ofMinutes(1)
@@ -49,11 +56,13 @@ dependencies {
     compileOnly "org.slf4j:slf4j-api:1.7.10"
     compileOnly "mesosphere.marathon:plugin-interface_2.11:1.3.2"
 
+    compile "com.bettercloud:vault-java-driver:1.2.0"
+
     testCompile "org.scalatest:scalatest_${scalaVersion}:2.2.5"
     testCompile "junit:junit:4.12"
     testCompile 'org.mockito:mockito-core:2.1.0'
     testCompile 'com.github.mohitsoni:marathon-client:0.4.2'
-    compile group: 'org.asynchttpclient', name: 'async-http-client', version: '2.0.24'
+    testCompile group: 'org.asynchttpclient', name: 'async-http-client', version: '2.0.24'
 }
 
 task wrapper(type: Wrapper) {
