@@ -11,7 +11,9 @@ import collection.JavaConversions._
 
 case class SSEvent(eventType: Option[String], eventData: String, eventId: Option[String])
 
-class EventStreamAsyncHandler(onEvent: SSEvent => Boolean) extends AsyncHandler[SSEvent] {
+class EventStreamAsyncHandler(onEvent: SSEvent => Boolean, onEventStreamEnd: () => Unit) extends AsyncHandler[SSEvent] {
+  def this(onEvent: SSEvent => Boolean) = this(onEvent, () =>  Unit)
+
   val currentBuffer = new StringBuilder
   var result: SSEvent = _
 
@@ -46,8 +48,12 @@ class EventStreamAsyncHandler(onEvent: SSEvent => Boolean) extends AsyncHandler[
       currentBuffer.delete(0, remainingBufferStartIndex)
     }
 
-    if (bodyPart.isLast && currentBuffer.nonEmpty) {
-      onLine(currentBuffer.toString())
+    if (bodyPart.isLast) {
+      if (currentBuffer.nonEmpty) {
+        onLine(currentBuffer.toString())
+      }
+      onEventStreamEnd
+      return State.ABORT
     }
 
     State.CONTINUE
@@ -116,11 +122,15 @@ class MarathonEventStream(marathonUrl: String) {
     false
   }
 
+  private def onEventStreamEnd(): Unit = {
+    listeners.foreach(l => l.promise.failure(new RuntimeException("The event stream was closed.")))
+  }
+
   private val streamClient = new DefaultAsyncHttpClient(new DefaultAsyncHttpClientConfig.Builder()
     .setRequestTimeout(-1).build())
     .prepareGet(marathonUrl + "/v2/events")
     .addHeader("Accept", "text/event-stream")
-    .execute(new EventStreamAsyncHandler(onEventArrived))
+    .execute(new EventStreamAsyncHandler(onEventArrived, onEventStreamEnd))
 
   private val listeners = new util.ArrayList[Listener]
 

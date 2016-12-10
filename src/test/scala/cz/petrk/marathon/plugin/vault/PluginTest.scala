@@ -1,5 +1,7 @@
 package cz.petrk.marathon.plugin.vault
 
+import java.util.concurrent.TimeUnit
+
 import mesosphere.marathon.client.MarathonClient
 import mesosphere.marathon.client.model.v2.App
 import org.junit.runner.RunWith
@@ -27,7 +29,7 @@ class PluginTest extends FlatSpec with Matchers {
 
     val appCreatedFuture = eventStream.when(_.eventType.contains("deployment_success"))
     val result = client.createApp(app)
-    Await.result(appCreatedFuture, Duration.Inf)
+    Await.result(appCreatedFuture, Duration.create(20, TimeUnit.SECONDS))
 
     val agentClient = MesosAgentClient(mesosSlaveUrl)
     val state = agentClient.fetchState()
@@ -41,7 +43,7 @@ class PluginTest extends FlatSpec with Matchers {
     client.deleteApp(result.getId)
 
     val appRemovedFuture = eventStream.when(_.eventType.contains("deployment_success"))
-    Await.result(appRemovedFuture, Duration.Inf)
+    Await.result(appRemovedFuture, Duration.create(20, TimeUnit.SECONDS))
 
     eventStream.close()
   }
