@@ -1,8 +1,0 @@
-{
-  "plugins": {
-    "envVarExtender": {
-      "plugin": "mesosphere.marathon.plugin.task.RunSpecTaskProcessor",
-      "implementation": "cz.petrk.marathon.plugin.vault.VaultPlugin"
-    }
-  }
-}
