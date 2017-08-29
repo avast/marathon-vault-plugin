@@ -52,7 +52,7 @@ class EventStreamAsyncHandler(onEvent: SSEvent => Boolean, onEventStreamEnd: () 
       if (currentBuffer.nonEmpty) {
         onLine(currentBuffer.toString())
       }
-      onEventStreamEnd
+      onEventStreamEnd()
       return State.ABORT
     }
 

@@ -3,8 +3,8 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.avast.gradle:docker-compose-gradle-plugin:0.3.13'
-        classpath 'com.github.ben-manes:gradle-versions-plugin:0.13.0'
+        classpath 'com.avast.gradle:docker-compose-gradle-plugin:0.5.0'
+        classpath 'com.github.ben-manes:gradle-versions-plugin:0.15.0'
     }
 }
 
@@ -56,11 +56,11 @@ dependencies {
     compileOnly "org.slf4j:slf4j-api:1.7.10"
     compileOnly "mesosphere.marathon:plugin-interface_2.11:1.4.5"
 
-    compile "com.bettercloud:vault-java-driver:1.2.0"
+    compile "com.bettercloud:vault-java-driver:3.0.0"
 
     testCompile "org.scalatest:scalatest_${scalaVersion}:2.2.5"
     testCompile "junit:junit:4.12"
-    testCompile 'org.mockito:mockito-core:2.1.0'
+    testCompile 'org.mockito:mockito-core:2.9.0'
     testCompile 'com.github.mohitsoni:marathon-client:0.4.2'
     testCompile group: 'org.asynchttpclient', name: 'async-http-client', version: '2.0.24'
 }
