@@ -2,7 +2,11 @@
   "plugins": {
     "envVarExtender": {
       "plugin": "mesosphere.marathon.plugin.task.RunSpecTaskProcessor",
-      "implementation": "com.avast.marathon.plugin.vault.VaultPlugin"
+      "implementation": "com.avast.marathon.plugin.vault.VaultPlugin",
+      "configuration": {
+        "address": "http://vault:8200",
+        "token": "testroottoken"
+      }
     }
   }
 }

@@ -15,8 +15,9 @@ import scala.concurrent.duration.Duration
 class PluginTest extends FlatSpec with Matchers {
   it should "modify environment variables" in {
 
-    val marathonUrl = "http://" + System.getProperty("marathon.host") + ":" + System.getProperty("marathon.tcp.8080")
-    val mesosSlaveUrl = "http://" + System.getProperty("mesos-slave.host") + ":" + System.getProperty("mesos-slave.tcp.5051")
+    val marathonUrl = s"http://${System.getProperty("marathon.host")}:${System.getProperty("marathon.tcp.8080")}"
+    val mesosSlaveUrl = s"http://${System.getProperty("mesos-slave.host")}:${System.getProperty("mesos-slave.tcp.5051")}"
+    val vaultUrl = s"http://${System.getProperty("vault.host")}:${System.getProperty("vault.tcp.8200")}"
 
     val client = MarathonClient.getInstance(marathonUrl)
     val eventStream = new MarathonEventStream(marathonUrl)

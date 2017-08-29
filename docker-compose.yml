@@ -68,3 +68,10 @@ services:
       - MARATHON_PLUGIN_DIR=/plugins
       - MARATHON_PLUGIN_CONF=/plugin-conf-test.json
 
+  vault:
+    image: vault
+    privileged: true
+    environment:
+      - VAULT_DEV_ROOT_TOKEN_ID=testroottoken
+    ports:
+      - "8200"
