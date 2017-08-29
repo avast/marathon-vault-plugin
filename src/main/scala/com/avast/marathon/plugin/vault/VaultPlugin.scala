@@ -1,5 +1,6 @@
 package com.avast.marathon.plugin.vault
 
+import com.bettercloud.vault.{Vault, VaultConfig}
 import mesosphere.marathon.plugin.plugin.PluginConfiguration
 import mesosphere.marathon.plugin.task.RunSpecTaskProcessor
 import mesosphere.marathon.plugin.{ApplicationSpec, PodSpec}

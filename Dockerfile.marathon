@@ -1,4 +1,4 @@
 FROM mesosphere/marathon:v1.4.5
 
 ADD build/distributions/marathon-vault-plugin-1.0-SNAPSHOT.tar /plugins/
-COPY src/main/resources/com.avast.marathon.plugin.vault/plugin-conf.json /plugin-conf.json
+COPY plugin-conf-test.json /plugin-conf-test.json

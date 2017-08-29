@@ -66,5 +66,5 @@ services:
       - MARATHON_MESOS_AUTHENTICATION_PRINCIPAL=marathon
       - MARATHON_MESOS_ROLE=public
       - MARATHON_PLUGIN_DIR=/plugins
-      - MARATHON_PLUGIN_CONF=/plugin-conf.json
+      - MARATHON_PLUGIN_CONF=/plugin-conf-test.json
 
