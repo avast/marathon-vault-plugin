@@ -31,7 +31,7 @@ class VaultPlugin extends RunSpecTaskProcessor with PluginConfiguration {
     assert(conf.token != null, "Vault token not specified.")
     vault = new Vault(new VaultConfig().address(conf.address).token(conf.token).build())
     pathProvider = conf.pathProvider.name.toLowerCase match {
-      case "absolutepathprovider" => new AbsolutePathProvider()
+      case "absolutepathprovider" => AbsolutePathProvider
       case "relativepathprovider" => new RelativePathProvider(conf.pathProvider.pathPrefix.getOrElse(""))
       case p => throw new RuntimeException(s"Unknown Vault path provider '$p'")
     }
@@ -83,11 +83,11 @@ trait VaultPathProvider {
   def getPath(appSpec: ApplicationSpec, builder: TaskInfo.Builder): String => String
 }
 
-class AbsolutePathProvider extends VaultPathProvider {
+object AbsolutePathProvider extends VaultPathProvider {
   override def getPath(appSpec: ApplicationSpec, builder: TaskInfo.Builder) = path => path
 }
 
 class RelativePathProvider(prefix: String) extends VaultPathProvider {
   override def getPath(appSpec: ApplicationSpec, builder: TaskInfo.Builder) =
-    path => s"$prefix${if (prefix.endsWith("/")) "" else "/"}${builder.getName}${if (path.startsWith("/")) "" else "/"}$path"
+    path => s"$prefix${if (prefix.endsWith("/")) "" else "/"}${appSpec.id.path.reverse.head}${if (path.startsWith("/")) "" else "/"}$path"
 }
