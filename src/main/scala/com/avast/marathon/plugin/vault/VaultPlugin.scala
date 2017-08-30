@@ -12,7 +12,8 @@ import play.api.libs.json.{JsObject, _}
 
 import scala.util.{Failure, Success, Try}
 
-case class Configuration(address: String, token: String, providerName: String, pathPrefix: String)
+case class Configuration(address: String, token: String, pathProvider: PathProvider)
+case class PathProvider(name: String, pathPrefix: Option[String])
 
 class VaultPlugin extends RunSpecTaskProcessor with PluginConfiguration {
 
@@ -23,14 +24,15 @@ class VaultPlugin extends RunSpecTaskProcessor with PluginConfiguration {
   private var pathProvider: VaultPathProvider = _
 
   override def initialize(marathonInfo: Map[String, Any], configurationJson: JsObject): Unit = {
+    implicit val pathProviderFormat = Json.format[PathProvider]
     val conf = configurationJson.as[Configuration](Json.format[Configuration])
     assert(conf != null, "VaultPlugin not initialized with configuration info.")
     assert(conf.address != null, "Vault address not specified.")
     assert(conf.token != null, "Vault token not specified.")
     vault = new Vault(new VaultConfig().address(conf.address).token(conf.token).build())
-    pathProvider = conf.providerName.toLowerCase match {
+    pathProvider = conf.pathProvider.name.toLowerCase match {
       case "absolutepathprovider" => new AbsolutePathProvider()
-      case "relativepathprovider" => new RelativePathProvider(conf.pathPrefix)
+      case "relativepathprovider" => new RelativePathProvider(conf.pathProvider.pathPrefix.getOrElse(""))
       case p => throw new RuntimeException(s"Unknown Vault path provider '$p'")
     }
     logger.info(s"VaultPlugin initialized with $conf")
@@ -82,10 +84,7 @@ trait VaultPathProvider {
 }
 
 class AbsolutePathProvider extends VaultPathProvider {
-  override def getPath(appSpec: ApplicationSpec, builder: TaskInfo.Builder) = path => {
-    println(path)
-    path
-  }
+  override def getPath(appSpec: ApplicationSpec, builder: TaskInfo.Builder) = path => path
 }
 
 class RelativePathProvider(prefix: String) extends VaultPathProvider {

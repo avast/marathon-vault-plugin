@@ -6,8 +6,9 @@
       "configuration": {
         "address": "http://vault:8200",
         "token": "testroottoken",
-        "providerName": "AbsolutePathProvider",
-        "pathPrefix": ""
+        "pathProvider": {
+          "name": "AbsolutePathProvider"
+        }
       }
     }
   }
