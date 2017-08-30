@@ -37,7 +37,10 @@ The plugin configuration JSON file will need to reference the Vault plugin as fo
       "implementation": "com.avast.marathon.plugin.vault.VaultPlugin",
       "configuration": {
         "address": "http://address_to_your_vault_instance:port",
-        "token": "access_token"
+        "token": "access_token",
+        "pathProvider": {
+          "name": "AbsolutePathProvider"
+        }
       }
     }
   }
@@ -47,3 +50,14 @@ The plugin configuration JSON file will need to reference the Vault plugin as fo
 You will also need to start Marathon with the secrets feature being enabled. See [Marathon command line flags](https://mesosphere.github.io/marathon/docs/command-line-flags) for more details. In short, it can be enabled by
 * specifying `--enable_features secrets` in Marathon command line
 * specifying environment variable `MARATHON_ENABLE_FEATURES=secrets` when starting Marathon
+
+## Providers
+
+### Vault path provider
+
+Vault path provider allows to control how the path to the Vault's secret will be constructed.
+
+The path provider is defined in the configuration as an object with the name `pathProvider`. Required property is `name` and supported values are:
+
+* `AbsolutePathProvider` - use the path from secret as is. This provider does not have any other configuration parameters.
+* `RelativePathProvider` - use the path from secret as a relative path. The final path for Vault has three parts: `prefix + application name + path from secret`. This provider expect `pathPrefix` configuration parameter which defines prefix. 
