@@ -1,4 +1,4 @@
-# Marathon Vault plugin [![Build Status](https://travis-ci.org/avast/marathon-vault-plugin.svg?branch=master)](https://travis-ci.org/avast/marathon-vault-plugin)
+# Marathon Vault plugin [![Build Status](https://travis-ci.org/avast/marathon-vault-plugin.svg?branch=master)](https://travis-ci.org/avast/marathon-vault-plugin) [![Download](https://api.bintray.com/packages/avast/maven/marathon-vault-plugin/images/download.svg) ](https://bintray.com/avast/maven/marathon-vault-plugin/_latestVersion)
 
 Plugin for [Marathon](https://mesosphere.github.io/marathon/) which injects secrets stored in [Vault](https://www.vaultproject.io/) via environment variables.
 
