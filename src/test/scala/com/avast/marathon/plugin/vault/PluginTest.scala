@@ -15,11 +15,11 @@ import scala.concurrent.duration.Duration
 @RunWith(classOf[JUnitRunner])
 class PluginTest extends FlatSpec with Matchers {
 
-  private val marathonUrl = s"http://${System.getProperty("marathon.host")}:${System.getProperty("marathon.tcp.8080")}"
-  private val mesosSlaveUrl = s"http://${System.getProperty("mesos-slave.host")}:${System.getProperty("mesos-slave.tcp.5051")}"
-  private val vaultUrl = s"http://${System.getProperty("vault.host")}:${System.getProperty("vault.tcp.8200")}"
+  private lazy val marathonUrl = s"http://${System.getProperty("marathon.host")}:${System.getProperty("marathon.tcp.8080")}"
+  private lazy val mesosSlaveUrl = s"http://${System.getProperty("mesos-slave.host")}:${System.getProperty("mesos-slave.tcp.5051")}"
+  private lazy val vaultUrl = s"http://${System.getProperty("vault.host")}:${System.getProperty("vault.tcp.8200")}"
 
-  it should "read exists secret" in {
+  it should "read existing secret" in {
     check("SECRETVAR", deployWithSecret) { envVarValue =>
       envVarValue shouldBe "testValue"
     }
