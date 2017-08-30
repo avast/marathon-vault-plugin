@@ -61,10 +61,6 @@ class VaultPlugin extends RunSpecTaskProcessor with PluginConfiguration {
       case _ => // plain environment variable
     }
 
-    envBuilder.addVariables(Variable.newBuilder()
-      .setName("TESTVAR")
-      .setValue("TESTVALUE"))
-
     val commandBuilder = builder.getCommand.toBuilder
     commandBuilder.setEnvironment(envBuilder)
     builder.setCommand(commandBuilder)

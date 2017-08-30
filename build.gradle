@@ -39,7 +39,7 @@ composeUp.dependsOn(bundle)
 
 dockerCompose {
     waitForTcpPortsTimeout = java.time.Duration.ofMinutes(1)
-    stopContainers = false
+    stopContainers = true
 }
 test.doFirst {
     dockerCompose.exposeAsSystemProperties(test)

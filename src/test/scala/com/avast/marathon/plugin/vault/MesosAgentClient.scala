@@ -32,7 +32,7 @@ object MesosAgentClient {
   }
 
   implicit class MesosAgentClientEx(agentClient: MesosAgentClient) {
-    def waitForStdOutContentsMatch(executor: MesosExecutor, fn: String => Option[String], timeout: Duration): String = {
+    def waitForStdOutContentsMatch(envVarName: String, executor: MesosExecutor, fn: String => Option[String], timeout: Duration): String = {
       val stdOutPath = s"${executor.directory}/stdout"
       var matchOption: Option[String] = None
       var stdOut: String = null
@@ -45,7 +45,7 @@ object MesosAgentClient {
         }
 
         stdOut = agentClient.download(stdOutPath)
-        matchOption = EnvAppCmd.extractEnvValue("TESTVAR", stdOut)
+        matchOption = EnvAppCmd.extractEnvValue(envVarName, stdOut)
       } while (matchOption.isEmpty)
 
       matchOption.get
