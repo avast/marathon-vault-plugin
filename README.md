@@ -60,4 +60,4 @@ Vault path provider allows to control how the path to the Vault's secret will be
 The path provider is defined in the configuration as an object with the name `pathProvider`. Required property is `name` and supported values are:
 
 * `AbsolutePathProvider` - use the path from secret as is. This provider does not have any other configuration parameters.
-* `RelativePathProvider` - use the path from secret as a relative path. The final path for Vault has three parts: `prefix + application name + path from secret`. This provider expect `pathPrefix` configuration parameter which defines prefix. 
+* `RelativePathProvider` - use the path from secret as a relative path. The final path for Vault has three parts: `prefix + application name + path from secret`. This provider expects `pathPrefix` configuration parameter which defines prefix. 
