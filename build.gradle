@@ -3,18 +3,20 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.avast.gradle:docker-compose-gradle-plugin:0.5.0'
+        classpath 'com.avast.gradle:gradle-docker-compose-plugin:0.5.1'
         classpath 'com.github.ben-manes:gradle-versions-plugin:0.15.0'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
     }
 }
 
 group 'com.avast'
-version '1.0-SNAPSHOT'
+version = version == 'unspecified' ? '1.0-SNAPSHOT' : version
 
 apply plugin: 'java'
 apply plugin: 'scala'
 apply plugin: 'com.github.ben-manes.versions'
 apply plugin: 'docker-compose'
+apply plugin: 'com.jfrog.bintray'
 
 sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
@@ -36,6 +38,7 @@ task bundle(type: Tar) {
 
 dockerCompose.isRequiredBy(test)
 composeUp.dependsOn(bundle)
+dockerCompose.environment.put('APP_VERSION', version)
 
 dockerCompose {
     waitForTcpPortsTimeout = java.time.Duration.ofMinutes(1)
@@ -62,6 +65,28 @@ dependencies {
     testCompile 'org.mockito:mockito-core:2.9.0'
     testCompile 'com.github.mohitsoni:marathon-client:0.4.2'
     testCompile group: 'org.asynchttpclient', name: 'async-http-client', version: '2.0.24'
+}
+
+bintray {
+    user = System.getenv('BINTRAY_USER')
+    key = System.getenv('BINTRAY_KEY')
+    configurations = ['archives']
+    publish = true
+    pkg {
+        repo = 'maven'
+        name = 'marathon-vault-plugin'
+        desc = 'Marathon plugin which injects Vault secrets via environment variables.'
+        userOrg = 'avast'
+        licenses = ['MIT']
+        vcsUrl = 'https://github.com/avast/marathon-vault-plugin.git'
+        websiteUrl = 'https://github.com/avast/marathon-vault-plugin'
+        issueTrackerUrl = 'https://github.com/avast/marathon-vault-plugin/issues'
+        labels = ['marathon', 'vault', 'secrets']
+        version {
+            name = project.version
+            vcsTag = project.version
+        }
+    }
 }
 
 task wrapper(type: Wrapper) {
