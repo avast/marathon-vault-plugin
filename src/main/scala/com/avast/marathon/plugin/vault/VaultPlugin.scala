@@ -12,7 +12,7 @@ import play.api.libs.json.{JsObject, _}
 
 import scala.util.{Failure, Success, Try}
 
-case class Configuration(address: String, token: String)
+case class Configuration(address: String, token: String, providerName: String, pathPrefix: String)
 
 class VaultPlugin extends RunSpecTaskProcessor with PluginConfiguration {
 
@@ -20,31 +20,21 @@ class VaultPlugin extends RunSpecTaskProcessor with PluginConfiguration {
   logger.info("Vault plugin instantiated")
 
   private var vault: Vault = _
+  private var pathProvider: VaultPathProvider = _
 
   override def initialize(marathonInfo: Map[String, Any], configurationJson: JsObject): Unit = {
-    val conf = configurationJson.as[Configuration](Json.reads[Configuration])
+    val conf = configurationJson.as[Configuration](Json.format[Configuration])
     assert(conf != null, "VaultPlugin not initialized with configuration info.")
     assert(conf.address != null, "Vault address not specified.")
     assert(conf.token != null, "Vault token not specified.")
     vault = new Vault(new VaultConfig().address(conf.address).token(conf.token).build())
+    pathProvider = conf.providerName.toLowerCase match {
+      case "absolutepathprovider" => new AbsolutePathProvider()
+      case "relativepathprovider" => new RelativePathProvider(conf.pathPrefix)
+      case p => throw new RuntimeException(s"Unknown Vault path provider '$p'")
+    }
     logger.info(s"VaultPlugin initialized with $conf")
   }
-
-  /*
-    {
-      "env": {
-        "abc": "def",
-        "DB_PASSWORD": {
-          "secret": "db_pwd"
-        }
-      },
-      "secrets": {
-        "db_pwd": {
-          "source": "/path/to/vault/secret@password"
-        }
-      }
-    }
-  */
 
   def taskInfo(appSpec: ApplicationSpec, builder: TaskInfo.Builder): Unit = {
     val envBuilder = builder.getCommand.getEnvironment.toBuilder
@@ -52,7 +42,7 @@ class VaultPlugin extends RunSpecTaskProcessor with PluginConfiguration {
       case (name, v: EnvVarSecretRef) =>
         appSpec.secrets.get(v.secret) match {
           case Some(secret) =>
-            getSecretValueFromVault(secret) match {
+            getSecretValueFromVault(secret, pathProvider.getPath(appSpec, builder)) match {
               case Success(secretValue) => envBuilder.addVariables(Variable.newBuilder().setName(name).setValue(secretValue))
               case Failure(e) => logger.error(s"Secret ${v.secret} in ${appSpec.id} application cannot be read from Vault (source: ${secret.source})", e)
             }
@@ -66,14 +56,14 @@ class VaultPlugin extends RunSpecTaskProcessor with PluginConfiguration {
     builder.setCommand(commandBuilder)
   }
 
-  private def getSecretValueFromVault(secret: Secret): Try[String] = Try {
+  private def getSecretValueFromVault(secret: Secret, getVaultPath: String => String): Try[String] = Try {
     val source = secret.source
     val indexOfAt = source.indexOf('@')
     val indexOfSplit = if (indexOfAt != -1) indexOfAt else source.lastIndexOf('/')
     if (indexOfSplit > 0) {
       val path = source.substring(0, indexOfSplit)
       val attribute = source.substring(indexOfSplit + 1)
-      Option(vault.logical().read(path).getData.get(attribute)) match {
+      Option(vault.logical().read(getVaultPath(path)).getData.get(attribute)) match {
         case Some(secretValue) => Success(secretValue)
         case None => Failure(new RuntimeException(s"Secret $source obtained from Vault is empty"))
       }
@@ -85,4 +75,20 @@ class VaultPlugin extends RunSpecTaskProcessor with PluginConfiguration {
   def taskGroup(podSpec: PodSpec, executor: Builder, taskGroup: TaskGroupInfo.Builder): Unit = {
 
   }
+}
+
+trait VaultPathProvider {
+  def getPath(appSpec: ApplicationSpec, builder: TaskInfo.Builder): String => String
+}
+
+class AbsolutePathProvider extends VaultPathProvider {
+  override def getPath(appSpec: ApplicationSpec, builder: TaskInfo.Builder) = path => {
+    println(path)
+    path
+  }
+}
+
+class RelativePathProvider(prefix: String) extends VaultPathProvider {
+  override def getPath(appSpec: ApplicationSpec, builder: TaskInfo.Builder) =
+    path => s"$prefix${if (prefix.endsWith("/")) "" else "/"}${builder.getName}${if (path.startsWith("/")) "" else "/"}$path"
 }
