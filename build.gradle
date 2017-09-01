@@ -68,6 +68,15 @@ dependencies {
     testCompile group: 'org.asynchttpclient', name: 'async-http-client', version: '2.0.24'
 }
 
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allSource
+    classifier = 'sources'
+}
+
+artifacts {
+    archives sourcesJar
+}
+
 bintray {
     user = System.getenv('BINTRAY_USER')
     key = System.getenv('BINTRAY_KEY')
