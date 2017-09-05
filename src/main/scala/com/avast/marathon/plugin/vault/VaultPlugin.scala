@@ -89,5 +89,5 @@ object AbsolutePathProvider extends VaultPathProvider {
 
 class RelativePathProvider(prefix: String) extends VaultPathProvider {
   override def getPath(appSpec: ApplicationSpec, builder: TaskInfo.Builder) =
-    path => s"$prefix${if (prefix.endsWith("/")) "" else "/"}${appSpec.id.path.reverse.head}${if (path.startsWith("/")) "" else "/"}$path"
+    path => s"$prefix${if (prefix.endsWith("/")) "" else "/"}${appSpec.id.path.mkString("-")}${if (path.startsWith("/")) "" else "/"}$path"
 }
