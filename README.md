@@ -32,7 +32,7 @@ The plugin configuration JSON file will need to reference the Vault plugin as fo
 ```json
 {
   "plugins": {
-    "envVarExtender": {
+    "marathon-vault-plugin": {
       "plugin": "mesosphere.marathon.plugin.task.RunSpecTaskProcessor",
       "implementation": "com.avast.marathon.plugin.vault.VaultPlugin",
       "configuration": {

@@ -1,6 +1,6 @@
 {
   "plugins": {
-    "envVarExtender": {
+    "marathon-vault-plugin": {
       "plugin": "mesosphere.marathon.plugin.task.RunSpecTaskProcessor",
       "implementation": "com.avast.marathon.plugin.vault.VaultPlugin",
       "configuration": {
