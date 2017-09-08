@@ -6,6 +6,7 @@ buildscript {
         classpath 'com.avast.gradle:gradle-docker-compose-plugin:0.5.1'
         classpath 'com.github.ben-manes:gradle-versions-plugin:0.15.0'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
+        classpath 'com.jcabi:jcabi-github:0.23'
     }
 }
 
@@ -99,6 +100,14 @@ bintray {
     }
 }
 
+import com.jcabi.github.*
+task githubUpload {
+    dependsOn tasks.bundle
+    doLast {
+        new RtGithub(System.getenv("GITHUB_TOKEN")).repos().get(new Coordinates.Simple("avast", "marathon-vault-plugin")).releases().iterate().sort { -it.number() }.find().assets().upload(file(tasks.bundle.archivePath).bytes, 'application/tar+gzip', 'bundle.tar')
+    }
+}
+
 task wrapper(type: Wrapper) {
-    gradleVersion = '3.5'
+    gradleVersion = '4.1'
 }
