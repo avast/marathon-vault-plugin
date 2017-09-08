@@ -12,7 +12,7 @@ import play.api.libs.json.{JsObject, _}
 
 import scala.util.{Failure, Success, Try}
 
-case class Configuration(address: String, token: String, sharedRoot: Option[String], appSpecificRoot: Option[String])
+case class Configuration(address: String, token: String, absolutePathRoot: Option[String], appRelativePathRoot: Option[String])
 
 class VaultPlugin extends RunSpecTaskProcessor with PluginConfiguration {
 
@@ -29,8 +29,8 @@ class VaultPlugin extends RunSpecTaskProcessor with PluginConfiguration {
     assert(conf.address != null, "Vault address not specified.")
     assert(conf.token != null, "Vault token not specified.")
     vault = new Vault(new VaultConfig().address(conf.address).token(conf.token).build())
-    absolutePathProvider = new AbsolutePathProvider(conf.sharedRoot.getOrElse("secret/shared/"))
-    relativePathProvider = new RelativePathProvider(conf.appSpecificRoot.getOrElse("secret/private/"))
+    absolutePathProvider = new AbsolutePathProvider(conf.absolutePathRoot.getOrElse("secret/shared/"))
+    relativePathProvider = new RelativePathProvider(conf.appRelativePathRoot.getOrElse("secret/private/"))
     logger.info(s"VaultPlugin initialized with $conf")
   }
 
