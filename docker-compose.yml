@@ -60,6 +60,7 @@ services:
     links:
       - zookeeper
       - mesos-master
+      - vault
     environment:
       - MARATHON_ZK=zk://zookeeper:2181/marathon
       - MARATHON_MASTER=zk://zookeeper:2181/mesos
@@ -72,7 +73,6 @@ services:
 
   vault:
     image: vault
-    privileged: true
     environment:
       - VAULT_DEV_ROOT_TOKEN_ID=testroottoken
     ports:
