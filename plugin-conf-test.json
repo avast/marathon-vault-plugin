@@ -5,11 +5,7 @@
       "implementation": "com.avast.marathon.plugin.vault.VaultPlugin",
       "configuration": {
         "address": "http://vault:8200",
-        "token": "testroottoken",
-        "pathProvider": {
-          "sharedRoot": "secret/shared/",
-          "appSpecificRoot": "secret/private/"
-        }
+        "token": "testroottoken"
       }
     }
   }

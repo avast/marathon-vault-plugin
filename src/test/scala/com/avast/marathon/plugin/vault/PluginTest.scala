@@ -20,22 +20,27 @@ class PluginTest extends FlatSpec with Matchers {
   private lazy val vaultUrl = s"http://${System.getProperty("vault.host")}:${System.getProperty("vault.tcp.8200")}"
 
   it should "read existing shared secret" in {
-    check("SECRETVAR", env => deployWithSecret(env, "/test@testKey")) { envVarValue =>
+    check("SECRETVAR", env => deployWithSecret("testappjson", env, "/test@testKey")) { envVarValue =>
       envVarValue shouldBe "testValue"
     }
   }
 
   it should "read existing private secret" in {
-    check("SECRETVAR", env => deployWithSecret(env, "test@testKey")) { envVarValue =>
+    check("SECRETVAR", env => deployWithSecret("testappjson", env, "test@testKey")) { envVarValue =>
       envVarValue shouldBe "privateTestValue"
     }
   }
 
-  private def deployWithSecret(envVarName: String, secret: String): String = {
-    val appId = "testappjson"
+  it should "read existing private secret from application in folder" in {
+    check("SECRETVAR", env => deployWithSecret("folder/testappjson", env, "test@testKey")) { envVarValue =>
+      envVarValue shouldBe "privateTestFolderValue"
+    }
+  }
+
+  private def deployWithSecret(appId: String, envVarName: String, secret: String): String = {
     val json = s"""{ "id": "$appId","cmd": "${EnvAppCmd.create(envVarName)}","env": {"$envVarName": {"secret": "pwd"}},"secrets": {"pwd": {"source": "$secret"}}}"""
 
-    val marathonResponse = new MarathonClient(marathonUrl).put("testappjson", json)
+    val marathonResponse = new MarathonClient(marathonUrl).put(appId, json)
     appId
   }
 
@@ -48,6 +53,7 @@ class PluginTest extends FlatSpec with Matchers {
     val vault = new Vault(vaultConfig)
     vault.logical().write("secret/shared/test", Map[String, AnyRef]("testKey" -> "testValue").asJava)
     vault.logical().write("secret/private/testappjson/test", Map[String, AnyRef]("testKey" -> "privateTestValue").asJava)
+    vault.logical().write("secret/private/folder/testappjson/test", Map[String, AnyRef]("testKey" -> "privateTestFolderValue").asJava)
 
     val appId = deployApp(envVarName)
     val appCreatedFuture = eventStream.when(_.eventType.contains("deployment_success"))

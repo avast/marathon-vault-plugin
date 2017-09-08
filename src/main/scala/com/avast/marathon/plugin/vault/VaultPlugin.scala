@@ -12,8 +12,7 @@ import play.api.libs.json.{JsObject, _}
 
 import scala.util.{Failure, Success, Try}
 
-case class Configuration(address: String, token: String, pathProvider: PathProvider)
-case class PathProvider(sharedRoot: String, appSpecificRoot: String)
+case class Configuration(address: String, token: String, sharedRoot: Option[String], appSpecificRoot: Option[String])
 
 class VaultPlugin extends RunSpecTaskProcessor with PluginConfiguration {
 
@@ -25,14 +24,13 @@ class VaultPlugin extends RunSpecTaskProcessor with PluginConfiguration {
   private var relativePathProvider: VaultPathProvider = _
 
   override def initialize(marathonInfo: Map[String, Any], configurationJson: JsObject): Unit = {
-    implicit val pathProviderFormat = Json.format[PathProvider]
     val conf = configurationJson.as[Configuration](Json.format[Configuration])
     assert(conf != null, "VaultPlugin not initialized with configuration info.")
     assert(conf.address != null, "Vault address not specified.")
     assert(conf.token != null, "Vault token not specified.")
     vault = new Vault(new VaultConfig().address(conf.address).token(conf.token).build())
-    absolutePathProvider = new AbsolutePathProvider(conf.pathProvider.sharedRoot)
-    relativePathProvider = new RelativePathProvider(conf.pathProvider.appSpecificRoot)
+    absolutePathProvider = new AbsolutePathProvider(conf.sharedRoot.getOrElse("secret/shared/"))
+    relativePathProvider = new RelativePathProvider(conf.appSpecificRoot.getOrElse("secret/private/"))
     logger.info(s"VaultPlugin initialized with $conf")
   }
 
