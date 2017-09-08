@@ -13,7 +13,7 @@ import play.api.libs.json.{JsObject, _}
 import scala.util.{Failure, Success, Try}
 
 case class Configuration(address: String, token: String, pathProvider: PathProvider)
-case class PathProvider(name: String, pathPrefix: Option[String])
+case class PathProvider(sharedRoot: String, appSpecificRoot: String)
 
 class VaultPlugin extends RunSpecTaskProcessor with PluginConfiguration {
 
@@ -21,7 +21,8 @@ class VaultPlugin extends RunSpecTaskProcessor with PluginConfiguration {
   logger.info("Vault plugin instantiated")
 
   private var vault: Vault = _
-  private var pathProvider: VaultPathProvider = _
+  private var absolutePathProvider: VaultPathProvider = _
+  private var relativePathProvider: VaultPathProvider = _
 
   override def initialize(marathonInfo: Map[String, Any], configurationJson: JsObject): Unit = {
     implicit val pathProviderFormat = Json.format[PathProvider]
@@ -30,11 +31,8 @@ class VaultPlugin extends RunSpecTaskProcessor with PluginConfiguration {
     assert(conf.address != null, "Vault address not specified.")
     assert(conf.token != null, "Vault token not specified.")
     vault = new Vault(new VaultConfig().address(conf.address).token(conf.token).build())
-    pathProvider = conf.pathProvider.name.toLowerCase match {
-      case "absolutepathprovider" => AbsolutePathProvider
-      case "relativepathprovider" => new RelativePathProvider(conf.pathProvider.pathPrefix.getOrElse(""))
-      case p => throw new RuntimeException(s"Unknown Vault path provider '$p'")
-    }
+    absolutePathProvider = new AbsolutePathProvider(conf.pathProvider.sharedRoot)
+    relativePathProvider = new RelativePathProvider(conf.pathProvider.appSpecificRoot)
     logger.info(s"VaultPlugin initialized with $conf")
   }
 
@@ -44,7 +42,8 @@ class VaultPlugin extends RunSpecTaskProcessor with PluginConfiguration {
       case (name, v: EnvVarSecretRef) =>
         appSpec.secrets.get(v.secret) match {
           case Some(secret) =>
-            getSecretValueFromVault(secret, pathProvider.getPath(appSpec, builder)) match {
+            val pathProvider = selectPathProvider(secret.source).getPath(appSpec, builder)
+            getSecretValueFromVault(secret)(pathProvider) match {
               case Success(secretValue) => envBuilder.addVariables(Variable.newBuilder().setName(name).setValue(secretValue))
               case Failure(e) => logger.error(s"Secret ${v.secret} in ${appSpec.id} application cannot be read from Vault (source: ${secret.source})", e)
             }
@@ -58,7 +57,12 @@ class VaultPlugin extends RunSpecTaskProcessor with PluginConfiguration {
     builder.setCommand(commandBuilder)
   }
 
-  private def getSecretValueFromVault(secret: Secret, getVaultPath: String => String): Try[String] = Try {
+  private def selectPathProvider(secret: String): VaultPathProvider = {
+    if (secret.startsWith("/")) absolutePathProvider
+    else relativePathProvider
+  }
+
+  private def getSecretValueFromVault(secret: Secret)(getVaultPath: String => String): Try[String] = Try {
     val source = secret.source
     val indexOfAt = source.indexOf('@')
     val indexOfSplit = if (indexOfAt != -1) indexOfAt else source.lastIndexOf('/')
@@ -83,11 +87,12 @@ trait VaultPathProvider {
   def getPath(appSpec: ApplicationSpec, builder: TaskInfo.Builder): String => String
 }
 
-object AbsolutePathProvider extends VaultPathProvider {
-  override def getPath(appSpec: ApplicationSpec, builder: TaskInfo.Builder) = path => path
+class AbsolutePathProvider(root: String) extends VaultPathProvider {
+  override def getPath(appSpec: ApplicationSpec, builder: TaskInfo.Builder) =
+    path => s"$root${if (root.endsWith("/")) "" else "/"}${path.substring(1)}"
 }
 
-class RelativePathProvider(prefix: String) extends VaultPathProvider {
+class RelativePathProvider(root: String) extends VaultPathProvider {
   override def getPath(appSpec: ApplicationSpec, builder: TaskInfo.Builder) =
-    path => s"$prefix${if (prefix.endsWith("/")) "" else "/"}${appSpec.id.path.mkString("-")}${if (path.startsWith("/")) "" else "/"}$path"
+    path => s"$root${if (root.endsWith("/")) "" else "/"}${appSpec.id.path.mkString("/")}/$path"
 }

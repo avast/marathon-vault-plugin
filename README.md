@@ -4,7 +4,7 @@ Plugin for [Marathon](https://mesosphere.github.io/marathon/) which injects secr
 
 ## How to reference secrets in marathon.json
 
-The following example `marathon.json` fragment will read Vault path `/secret/abc/xyz`, extract field `password` from that path and inject the field value into an environment variable named `ENV_NAME`:
+The following example `marathon.json` fragment will read Vault path `/secret/shared/abc/xyz`, extract field `password` from that path and inject the field value into an environment variable named `ENV_NAME`:
 
 ```json
 {
@@ -15,13 +15,24 @@ The following example `marathon.json` fragment will read Vault path `/secret/abc
   },
   "secrets": {
     "secret_ref": {
-      "source": "/secret/abc/xyz@password"
+      "source": "/abc/xyz@password"
     }
   }
 }
 ```
 
 If the provided Vault path or field is not found, the environment variable will not be set. The same applies when it cannot be read because of permissions or other types of errors. Either way, it will be logged as an error in Marathon logs.
+
+The path in the secret source can be absolute or relative and it depends on format of the secret source. The path is absolute if the secret source starts with `/` otherwise is relative path.
+Both paths have a root defined in configuration (`sharedRoot` for absolute path and `appSpecificRoot` for relative path). 
+
+### Absolute path to a secret
+
+For the absolute path is a path to the vault defined as `<sharedRoot>/<path from the secret source>` (e.g. `secret/shared/database@password`). This kind of secret allows you to share secrets between applications.
+
+### Relative path to a secret
+
+For the relative path is a path to the vault defined as `<appSpecificRoot>/<marathon path and service name>/<path from the secret source>` (e.g. for application `test/myTestApp` it is `secret/private/test/myTestApp/database@password`). This concept will guarantee that secrets can not be read from other applications.
 
 ## Installation
 
@@ -39,7 +50,8 @@ The plugin configuration JSON file will need to reference the Vault plugin as fo
         "address": "http://address_to_your_vault_instance:port",
         "token": "access_token",
         "pathProvider": {
-          "name": "AbsolutePathProvider"
+          "sharedRoot": "secret/shared/",
+          "appSpecificRoot": "secret/private/"
         }
       }
     }
@@ -50,14 +62,3 @@ The plugin configuration JSON file will need to reference the Vault plugin as fo
 You will also need to start Marathon with the secrets feature being enabled. See [Marathon command line flags](https://mesosphere.github.io/marathon/docs/command-line-flags) for more details. In short, it can be enabled by
 * specifying `--enable_features secrets` in Marathon command line
 * specifying environment variable `MARATHON_ENABLE_FEATURES=secrets` when starting Marathon
-
-## Providers
-
-### Vault path provider
-
-Vault path provider allows to control how the path to the Vault's secret will be constructed.
-
-The path provider is defined in the configuration as an object with the name `pathProvider`. Required property is `name` and supported values are:
-
-* `AbsolutePathProvider` - use the path from secret as is. This provider does not have any other configuration parameters.
-* `RelativePathProvider` - use the path from secret as a relative path. The final path for Vault has three parts: `prefix + application name + path from secret`. This provider expects `pathPrefix` configuration parameter which defines prefix. 
