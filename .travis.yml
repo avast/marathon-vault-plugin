@@ -23,7 +23,7 @@ cache:
     - $HOME/.m2
 
 script:
-  - ./gradlew test --info
+  - ./gradlew test --debug
 
 after_success:
   - test $TRAVIS_PULL_REQUEST == "false" && test "$TRAVIS_TAG" != "" && test $TRAVIS_REPO_SLUG == "avast/marathon-vault-plugin" && ./gradlew bintrayUpload githubUpload -Pversion="$TRAVIS_TAG" --info
