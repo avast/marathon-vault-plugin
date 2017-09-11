@@ -3,10 +3,10 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.avast.gradle:gradle-docker-compose-plugin:0.5.1'
+        classpath 'com.avast.gradle:gradle-docker-compose-plugin:0.5.3'
         classpath 'com.github.ben-manes:gradle-versions-plugin:0.15.0'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
-        classpath 'com.jcabi:jcabi-github:0.23'
+        classpath 'com.jcabi:jcabi-github:0.32'
     }
 }
 
@@ -64,7 +64,7 @@ dependencies {
 
     testCompile "org.scalatest:scalatest_${scalaVersion}:2.2.5"
     testCompile "junit:junit:4.12"
-    testCompile 'org.mockito:mockito-core:2.9.0'
+    testCompile 'org.mockito:mockito-core:2.10.0'
     testCompile 'com.github.mohitsoni:marathon-client:0.4.2'
     testCompile group: 'org.asynchttpclient', name: 'async-http-client', version: '2.0.24'
 }
