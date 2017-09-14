@@ -1,4 +1,5 @@
-FROM mesosphere/marathon:v1.4.5
+ARG MARATHON_VERSION=v1.4.5
+FROM mesosphere/marathon:$MARATHON_VERSION
 
 ARG APP_VERSION=1.0-SNAPSHOT
 

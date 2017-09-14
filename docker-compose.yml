@@ -55,6 +55,7 @@ services:
       dockerfile: Dockerfile.marathon
       args:
         - APP_VERSION=$APP_VERSION
+        - MARATHON_VERSION=$MARATHON_VERSION
     ports:
       - "8080"
     links:
