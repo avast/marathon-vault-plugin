@@ -1,4 +1,4 @@
-version: "2"
+version: "3.3"
 
 services:
   zookeeper:
@@ -76,5 +76,6 @@ services:
     image: vault
     environment:
       - VAULT_DEV_ROOT_TOKEN_ID=testroottoken
+      - SKIP_SETCAP=true # suppressing Vault's IPC lock behavior which causes problems in Travis (see https://github.com/hashicorp/docker-vault/issues/24)
     ports:
       - "8200"

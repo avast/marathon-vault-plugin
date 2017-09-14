@@ -4,7 +4,7 @@ services:
   - docker
 
 env:
-  - MARATHON_VERSION=v1.3.13
+  - MARATHON_VERSION=v1.4.0-RC8
   - MARATHON_VERSION=v1.4.5
   - MARATHON_VERSION=v1.5.0
   - MARATHON_VERSION=latest
@@ -26,7 +26,7 @@ cache:
     - $HOME/.m2
 
 script:
-  - ./gradlew test --info
+  - ./gradlew test
 
 after_success:
   - test $TRAVIS_PULL_REQUEST == "false" && test "$TRAVIS_TAG" != "" && test $TRAVIS_REPO_SLUG == "avast/marathon-vault-plugin" && ./gradlew bintrayUpload githubUpload -Pversion="$TRAVIS_TAG" --info

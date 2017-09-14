@@ -44,6 +44,7 @@ dockerCompose.environment.put('APP_VERSION', version)
 
 dockerCompose {
     waitForTcpPortsTimeout = java.time.Duration.ofMinutes(1)
+    captureContainersOutput = true
     stopContainers = true
 }
 test.doFirst {
