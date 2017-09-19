@@ -12,7 +12,7 @@ import play.api.libs.json.{JsObject, _}
 
 import scala.util.{Failure, Success, Try}
 
-case class Configuration(address: String, token: String, absolutePathRoot: Option[String], appRelativePathRoot: Option[String])
+case class Configuration(address: String, token: String, sharedPathRoot: Option[String], privatePathRoot: Option[String])
 
 class VaultPlugin extends RunSpecTaskProcessor with PluginConfiguration {
 
@@ -20,8 +20,8 @@ class VaultPlugin extends RunSpecTaskProcessor with PluginConfiguration {
   logger.info("Vault plugin instantiated")
 
   private var vault: Vault = _
-  private var absolutePathProvider: VaultPathProvider = _
-  private var relativePathProvider: VaultPathProvider = _
+  private var sharedPathProvider: VaultPathProvider = _
+  private var privatePathProvider: VaultPathProvider = _
 
   override def initialize(marathonInfo: Map[String, Any], configurationJson: JsObject): Unit = {
     val conf = configurationJson.as[Configuration](Json.format[Configuration])
@@ -29,8 +29,8 @@ class VaultPlugin extends RunSpecTaskProcessor with PluginConfiguration {
     assert(conf.address != null, "Vault address not specified.")
     assert(conf.token != null, "Vault token not specified.")
     vault = new Vault(new VaultConfig().address(conf.address).token(conf.token).build())
-    absolutePathProvider = new AbsolutePathProvider(conf.absolutePathRoot.getOrElse("secret/shared/"))
-    relativePathProvider = new RelativePathProvider(conf.appRelativePathRoot.getOrElse("secret/private/"))
+    sharedPathProvider = new SharedPathProvider(conf.sharedPathRoot.getOrElse("/"))
+    privatePathProvider = new PrivatePathProvider(conf.privatePathRoot.getOrElse("/"))
     logger.info(s"VaultPlugin initialized with $conf")
   }
 
@@ -56,8 +56,8 @@ class VaultPlugin extends RunSpecTaskProcessor with PluginConfiguration {
   }
 
   private def selectPathProvider(secret: String): VaultPathProvider = {
-    if (secret.startsWith("/")) absolutePathProvider
-    else relativePathProvider
+    if (secret.startsWith("/")) sharedPathProvider
+    else privatePathProvider
   }
 
   private def getSecretValueFromVault(secret: Secret)(getVaultPath: String => String): Try[String] = Try {
@@ -85,12 +85,12 @@ trait VaultPathProvider {
   def getPath(appSpec: ApplicationSpec, builder: TaskInfo.Builder): String => String
 }
 
-class AbsolutePathProvider(root: String) extends VaultPathProvider {
+class SharedPathProvider(root: String) extends VaultPathProvider {
   override def getPath(appSpec: ApplicationSpec, builder: TaskInfo.Builder) =
     path => s"$root${if (root.endsWith("/")) "" else "/"}${path.substring(1)}"
 }
 
-class RelativePathProvider(root: String) extends VaultPathProvider {
+class PrivatePathProvider(root: String) extends VaultPathProvider {
   override def getPath(appSpec: ApplicationSpec, builder: TaskInfo.Builder) =
     path => s"$root${if (root.endsWith("/")) "" else "/"}${appSpec.id.path.mkString("/")}/$path"
 }
