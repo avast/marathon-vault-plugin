@@ -19,17 +19,28 @@ class PluginTest extends FlatSpec with Matchers {
   private lazy val mesosSlaveUrl = s"http://${System.getProperty("mesos-slave.host")}:${System.getProperty("mesos-slave.tcp.5051")}"
   private lazy val vaultUrl = s"http://${System.getProperty("vault.host")}:${System.getProperty("vault.tcp.8200")}"
 
-  it should "read existing secret" in {
-    check("SECRETVAR", deployWithSecret) { envVarValue =>
+  it should "read existing shared secret" in {
+    check("SECRETVAR", env => deployWithSecret("testappjson", env, "/test@testKey")) { envVarValue =>
       envVarValue shouldBe "testValue"
     }
   }
 
-  private def deployWithSecret(envVarName: String): String = {
-    val appId = "testappjson"
-    val json = s"""{ "id": "$appId","cmd": "${EnvAppCmd.create(envVarName)}","env": {"$envVarName": {"secret": "pwd"}},"secrets": {"pwd": {"source": "secret/test@testKey"}}}"""
+  it should "read existing private secret" in {
+    check("SECRETVAR", env => deployWithSecret("testappjson", env, "test@testKey")) { envVarValue =>
+      envVarValue shouldBe "privateTestValue"
+    }
+  }
 
-    val marathonResponse = new MarathonClient(marathonUrl).put("testappjson", json)
+  it should "read existing private secret from application in folder" in {
+    check("SECRETVAR", env => deployWithSecret("folder/testappjson", env, "test@testKey")) { envVarValue =>
+      envVarValue shouldBe "privateTestFolderValue"
+    }
+  }
+
+  private def deployWithSecret(appId: String, envVarName: String, secret: String): String = {
+    val json = s"""{ "id": "$appId","cmd": "${EnvAppCmd.create(envVarName)}","env": {"$envVarName": {"secret": "pwd"}},"secrets": {"pwd": {"source": "$secret"}}}"""
+
+    val marathonResponse = new MarathonClient(marathonUrl).put(appId, json)
     appId
   }
 
@@ -40,7 +51,9 @@ class PluginTest extends FlatSpec with Matchers {
 
     val vaultConfig = new VaultConfig().address(vaultUrl).token("testroottoken").build()
     val vault = new Vault(vaultConfig)
-    vault.logical().write("secret/test", Map[String, AnyRef]("testKey" -> "testValue").asJava)
+    vault.logical().write("secret/shared/test", Map[String, AnyRef]("testKey" -> "testValue").asJava)
+    vault.logical().write("secret/private/testappjson/test", Map[String, AnyRef]("testKey" -> "privateTestValue").asJava)
+    vault.logical().write("secret/private/folder/testappjson/test", Map[String, AnyRef]("testKey" -> "privateTestFolderValue").asJava)
 
     val appId = deployApp(envVarName)
     val appCreatedFuture = eventStream.when(_.eventType.contains("deployment_success"))
