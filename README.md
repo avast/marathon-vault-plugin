@@ -33,7 +33,7 @@ The following example `marathon.json` fragment will read Vault path `secret/shar
 
 If the provided Vault path or field is not found, the environment variable will not be set. The same applies when it cannot be read because of permissions or other types of errors. Either way, it will be logged as an error in Marathon logs.
 
-The path in the secret source can be "shared" or "private" and it depends on format of the secret source. The path is shared if the secret source starts with `/`, otherwise it is a private path.
+The path in the secret source can be "shared" or "app-private" and it depends on the secret source format. The path is shared if the secret source starts with `/`, otherwise it is a private path.
 Both paths have a root defined in configuration (`sharedPathRoot` for shared path and `privatePathRoot` for private path). 
 
 ### Shared path to a secret
@@ -42,7 +42,7 @@ For a shared secret source path, a Vault path is constructed as `<sharedPathRoot
 
 ### Private path to a secret
 
-For a private secret source path, a Vault path is constructed as `<privatePathRoot>/<marathon path and service name>/<path from the secret source>`. E.g., with `secret/marathon` as a value configured in `privatePathRoot`, and `abc/xyz@password` as the secret source of an application with Marathon id `test/test-app`, the resulting Vault path will be `secret/maratahon/test/test-app/abc/xyz`, field name `password`. This concept will guarantee that secrets can not be read from other applications, but on the other hand it identical secrets will be needed to be stored multiple times in Vault (separately for each Marathon application).
+For a private secret source path, a Vault path is constructed as `<privatePathRoot>/<marathon path and service name>/<path from the secret source>`. E.g., with `secret/marathon` as a value configured in `privatePathRoot`, and `abc/xyz@password` as the secret source of an application with Marathon id `test/test-app`, the resulting Vault path will be `secret/marathon/test/test-app/abc/xyz`, field name `password`. This concept will guarantee that secrets cannot be read from other applications, but on the other hand identical secrets will need to be stored multiple times in Vault (separately for each Marathon application).
 
 ## Installation
 
