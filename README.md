@@ -1,6 +1,6 @@
 # Marathon Vault plugin [![Download](https://api.bintray.com/packages/avast/maven/marathon-vault-plugin/images/download.svg) ](https://bintray.com/avast/maven/marathon-vault-plugin/_latestVersion) [![release](http://github-release-version.herokuapp.com/github/avast/marathon-vault-plugin/release.svg?style=flat)](https://github.com/avast/marathon-vault-plugin/releases/latest)
 
-| Marathon version | v1.4.0            | v1.4.5            | v1.5.0            | latest            |
+| Marathon version | v1.4.1            | v1.4.5            | v1.5.0            | latest            |
 | ---------------- |-------------------|-------------------|-------------------| ------------------|
 | Build status     | [![Build1][1]][5] | [![Build2][2]][5] | [![Build3][3]][5] | [![Build4][4]][5] |
 
