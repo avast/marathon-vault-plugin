@@ -2,10 +2,9 @@ package com.avast.marathon.plugin.vault
 
 import java.lang.reflect.Type
 import java.time.{Duration, Instant}
-import javax.inject.Named
 
 import feign.codec.{Decoder, StringDecoder}
-import feign.{Feign, RequestLine, Response}
+import feign.{Feign, Param, RequestLine, Response}
 import feign.gson.GsonDecoder
 
 import collection.JavaConversions._
@@ -58,7 +57,7 @@ trait MesosAgentClient {
   def fetchState(): MesosAgentState
 
   @RequestLine("GET /files/download?path={path}")
-  def download(@Named("path") path: String): String
+  def download(@Param("path") path: String): String
 }
 
 

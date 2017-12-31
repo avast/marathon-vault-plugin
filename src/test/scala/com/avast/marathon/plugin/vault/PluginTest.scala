@@ -3,7 +3,6 @@ package com.avast.marathon.plugin.vault
 import java.util.concurrent.TimeUnit
 
 import com.bettercloud.vault.{Vault, VaultConfig}
-import mesosphere.marathon.client.MarathonClient
 import org.junit.runner.RunWith
 import org.scalatest.{FlatSpec, Matchers}
 import org.scalatest.junit.JUnitRunner
@@ -44,9 +43,8 @@ class PluginTest extends FlatSpec with Matchers {
     appId
   }
 
-  private def check(envVarName: String, deployApp: String => String)(verifier: String => Unit) = {
-
-    val client = MarathonClient.getInstance(marathonUrl)
+  private def check(envVarName: String, deployApp: String => String)(verifier: String => Unit): Unit = {
+    val client = new MarathonClient(marathonUrl)
     val eventStream = new MarathonEventStream(marathonUrl)
 
     val vaultConfig = new VaultConfig().address(vaultUrl).token("testroottoken").build()
@@ -68,8 +66,7 @@ class PluginTest extends FlatSpec with Matchers {
 
     verifier(envVarValue)
 
-    client.deleteApp(appId)
-
+    client.delete(appId)
     val appRemovedFuture = eventStream.when(_.eventType.contains("deployment_success"))
     Await.result(appRemovedFuture, Duration.create(20, TimeUnit.SECONDS))
 
