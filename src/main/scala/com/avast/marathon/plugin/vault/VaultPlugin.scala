@@ -1,6 +1,8 @@
 package com.avast.marathon.plugin.vault
 
-import com.bettercloud.vault.{Vault, VaultConfig}
+import java.io.File
+
+import com.bettercloud.vault.{SslConfig, Vault, VaultConfig}
 import mesosphere.marathon.plugin.plugin.PluginConfiguration
 import mesosphere.marathon.plugin.task.RunSpecTaskProcessor
 import mesosphere.marathon.plugin.{ApplicationSpec, EnvVarSecretRef, PodSpec, Secret}
@@ -12,7 +14,9 @@ import play.api.libs.json.{JsObject, _}
 
 import scala.util.{Failure, Success, Try}
 
-case class Configuration(address: String, token: String, sharedPathRoot: Option[String], privatePathRoot: Option[String])
+case class Configuration(address: String, token: String, sharedPathRoot: Option[String], privatePathRoot: Option[String], ssl: Option[SslConfiguration])
+case class SslConfiguration(verify: Option[Boolean], trustStoreFile: Option[String], keyStoreFile: Option[String], keyStorePassword: Option[String],
+                            pemFile: Option[String], clientPemFile: Option[String], clientKeyPemFile: Option[String])
 
 class VaultPlugin extends RunSpecTaskProcessor with PluginConfiguration {
 
@@ -24,11 +28,21 @@ class VaultPlugin extends RunSpecTaskProcessor with PluginConfiguration {
   private var privatePathProvider: VaultPathProvider = _
 
   override def initialize(marathonInfo: Map[String, Any], configurationJson: JsObject): Unit = {
+    implicit val sslConfigurationFormat: OFormat[SslConfiguration] = Json.format[SslConfiguration]
     val conf = configurationJson.as[Configuration](Json.format[Configuration])
     assert(conf != null, "VaultPlugin not initialized with configuration info.")
     assert(conf.address != null, "Vault address not specified.")
     assert(conf.token != null, "Vault token not specified.")
-    vault = new Vault(new VaultConfig().address(conf.address).token(conf.token).build())
+    val sslConfig = new SslConfig()
+    conf.ssl.foreach(sc => {
+      sc.verify.foreach(sslConfig.verify(_))
+      sc.trustStoreFile.foreach(f => sslConfig.trustStoreFile(new File(f)))
+      sc.keyStoreFile.foreach(f => sslConfig.keyStoreFile(new File(f), sc.keyStorePassword.getOrElse("")))
+      sc.pemFile.foreach(f => sslConfig.pemFile(new File(f)))
+      sc.clientPemFile.foreach(f => sslConfig.clientPemFile(new File(f)))
+      sc.clientKeyPemFile.foreach(f => sslConfig.clientKeyPemFile(new File(f)))
+    })
+    vault = new Vault(new VaultConfig().address(conf.address).token(conf.token).sslConfig(sslConfig.build()).build())
     sharedPathProvider = new SharedPathProvider(conf.sharedPathRoot.getOrElse("/"))
     privatePathProvider = new PrivatePathProvider(conf.privatePathRoot.getOrElse("/"))
     logger.info(s"VaultPlugin initialized with $conf")
@@ -86,11 +100,11 @@ trait VaultPathProvider {
 }
 
 class SharedPathProvider(root: String) extends VaultPathProvider {
-  override def getPath(appSpec: ApplicationSpec, builder: TaskInfo.Builder) =
+  override def getPath(appSpec: ApplicationSpec, builder: TaskInfo.Builder): String => String =
     path => s"$root${if (root.endsWith("/")) "" else "/"}${path.substring(1)}"
 }
 
 class PrivatePathProvider(root: String) extends VaultPathProvider {
-  override def getPath(appSpec: ApplicationSpec, builder: TaskInfo.Builder) =
+  override def getPath(appSpec: ApplicationSpec, builder: TaskInfo.Builder): String => String =
     path => s"$root${if (root.endsWith("/")) "" else "/"}${appSpec.id.path.mkString("/")}/$path"
 }

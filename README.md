@@ -60,7 +60,16 @@ The plugin configuration JSON file will need to reference the Vault plugin as fo
         "address": "http://address_to_your_vault_instance:port",
         "token": "access_token",
         "sharedPathRoot": "secret/shared/",
-        "privatePathRoot": "secret/private/"
+        "privatePathRoot": "secret/private/",
+        "ssl": {
+            "verify": "false", // don't use in production
+            "trustStoreFile": "/path/to/truststore/file",
+            "keyStoreFile": "/path/to/keystore/file",
+            "keyStorePassword": "keystore_passw0rd",
+            "pemFile": "/path/to/pem/file",
+            "clientPemFile": "/path/to/client/pem/file",
+            "clientKeyPemFile": "/path/to/client/pem/file"
+        }
       }
     }
   }
@@ -68,6 +77,8 @@ The plugin configuration JSON file will need to reference the Vault plugin as fo
 ```
 
 Properties `sharedPathRoot` and `privatePathRoot` are optional. Default value for both properties is root (which means `/`).
+
+The `ssl` section is optional and it directly configures [the underlying Vault client](https://github.com/BetterCloud/vault-java-driver#ssl-config).
 
 In this version, only token-based login is supported. Never use the Vault's initial root token - we recommend creating a separate token with long-enough validity and restricted (read-only) access to secrets.
 
