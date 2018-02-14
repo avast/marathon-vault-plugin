@@ -38,7 +38,7 @@ class PluginTest extends FlatSpec with Matchers {
 
   it should "fail when using .. in secret" in {
     intercept[RuntimeException] {
-      check("SECRETVAR", env => deployWithSecret("folder/testappjson", env, "test/../test@testKey")) { envVarValue =>
+      check("SECRETVAR", env => deployWithSecret("folder/testappjson", env, "test/../test@testKey"), java.time.Duration.ofSeconds(1)) { envVarValue =>
         envVarValue shouldNot be("privateTestFolderValue")
       }
     }
@@ -51,7 +51,7 @@ class PluginTest extends FlatSpec with Matchers {
     appId
   }
 
-  private def check(envVarName: String, deployApp: String => String)(verifier: String => Unit): Unit = {
+  private def check(envVarName: String, deployApp: String => String, timeout: java.time.Duration = java.time.Duration.ofSeconds(30))(verifier: String => Unit): Unit = {
     val client = new MarathonClient(marathonUrl)
     val eventStream = new MarathonEventStream(marathonUrl)
 
@@ -71,7 +71,7 @@ class PluginTest extends FlatSpec with Matchers {
     try {
       val envVarValue = agentClient.waitForStdOutContentsMatch(envVarName, state.frameworks(0).executors(0),
         o => EnvAppCmd.extractEnvValue(envVarName, o),
-        java.time.Duration.ofSeconds(30))
+        timeout)
       verifier(envVarValue)
     } finally {
       client.delete(appId)
