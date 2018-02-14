@@ -54,10 +54,14 @@ class VaultPlugin extends RunSpecTaskProcessor with PluginConfiguration {
       case (name, v: EnvVarSecretRef) =>
         appSpec.secrets.get(v.secret) match {
           case Some(secret) =>
-            val pathProvider = selectPathProvider(secret.source).getPath(appSpec, builder)
-            getSecretValueFromVault(secret)(pathProvider) match {
-              case Success(secretValue) => envBuilder.addVariables(Variable.newBuilder().setName(name).setValue(secretValue))
-              case Failure(e) => logger.error(s"Secret ${v.secret} in ${appSpec.id} application cannot be read from Vault (source: ${secret.source})", e)
+            validateSecret(v, secret, appSpec) match {
+              case Some(errorMsg) => logger.error(errorMsg)
+              case None =>
+                val pathProvider = selectPathProvider(secret.source).getPath(appSpec, builder)
+                getSecretValueFromVault(secret)(pathProvider) match {
+                  case Success(secretValue) => envBuilder.addVariables(Variable.newBuilder().setName(name).setValue(secretValue))
+                  case Failure(e) => logger.error(s"Secret ${v.secret} in ${appSpec.id} application cannot be read from Vault (source: ${secret.source})", e)
+                }
             }
           case None => logger.error(s"Secret ${v.secret} for ${appSpec.id} application not found in secrets definition in Marathon")
         }
@@ -68,6 +72,10 @@ class VaultPlugin extends RunSpecTaskProcessor with PluginConfiguration {
     commandBuilder.setEnvironment(envBuilder)
     builder.setCommand(commandBuilder)
   }
+
+  private def validateSecret(secretRef: EnvVarSecretRef, secret: Secret, appSpec: ApplicationSpec): Option[String] =
+    if (secret.source.contains("..")) Some(s"Secret ${secretRef.secret} in ${appSpec.id} application cannot be read from Vault (source: ${secret.source}) because the path contains ${"\"..\""}.")
+    else None
 
   private def selectPathProvider(secret: String): VaultPathProvider = {
     if (secret.startsWith("/")) sharedPathProvider
