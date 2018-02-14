@@ -3,10 +3,10 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.avast.gradle:gradle-docker-compose-plugin:0.5.4'
-        classpath 'com.github.ben-manes:gradle-versions-plugin:0.15.0'
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
-        classpath 'com.jcabi:jcabi-github:0.32'
+        classpath 'com.avast.gradle:gradle-docker-compose-plugin:0.6.15'
+        classpath 'com.github.ben-manes:gradle-versions-plugin:0.17.0'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.0'
+        classpath 'com.jcabi:jcabi-github:0.33.1'
     }
 }
 
@@ -65,8 +65,8 @@ dependencies {
 
     testCompile "org.scalatest:scalatest_${scalaVersion}:2.2.5"
     testCompile "junit:junit:4.12"
-    testCompile 'org.mockito:mockito-core:2.10.0'
-    testCompile 'org.asynchttpclient:async-http-client:2.0.24'
+    testCompile 'org.mockito:mockito-core:2.15.0'
+    testCompile 'org.asynchttpclient:async-http-client:2.4.0'
     testCompile 'io.github.openfeign:feign-core:9.5.1'
     testCompile 'io.github.openfeign:feign-gson:9.5.1'
 }

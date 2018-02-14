@@ -3,6 +3,7 @@ package com.avast.marathon.plugin.vault
 import java.nio.charset.StandardCharsets
 import java.util
 
+import io.netty.handler.codec.http.HttpHeaders
 import org.asynchttpclient.AsyncHandler.State
 import org.asynchttpclient._
 
@@ -108,7 +109,7 @@ class EventStreamAsyncHandler(onEvent: SSEvent => Boolean, onEventStreamEnd: () 
     }
   }
 
-  override def onHeadersReceived(headers: HttpResponseHeaders): State = {
+  override def onHeadersReceived(headers: HttpHeaders): State = {
     State.CONTINUE
   }
 }
