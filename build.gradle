@@ -109,7 +109,3 @@ task githubUpload {
         new RtGithub(System.getenv("GITHUB_TOKEN")).repos().get(new Coordinates.Simple("avast", "marathon-vault-plugin")).releases().iterate().sort { -it.number() }.find().assets().upload(file(tasks.bundle.archivePath).bytes, 'application/tar+gzip', 'bundle.tar')
     }
 }
-
-task wrapper(type: Wrapper) {
-    gradleVersion = '4.4.1'
-}
