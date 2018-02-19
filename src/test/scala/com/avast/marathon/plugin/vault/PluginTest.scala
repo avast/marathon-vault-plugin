@@ -36,6 +36,14 @@ class PluginTest extends FlatSpec with Matchers {
     }
   }
 
+  it should "fail when using .. in secret" in {
+    intercept[RuntimeException] {
+      check("SECRETVAR", env => deployWithSecret("folder/testappjson", env, "test/../test@testKey"), java.time.Duration.ofSeconds(1)) { envVarValue =>
+        envVarValue shouldNot be("privateTestFolderValue")
+      }
+    }
+  }
+
   private def deployWithSecret(appId: String, envVarName: String, secret: String): String = {
     val json = s"""{ "id": "$appId","cmd": "${EnvAppCmd.create(envVarName)}","env": {"$envVarName": {"secret": "pwd"}},"secrets": {"pwd": {"source": "$secret"}}}"""
 
@@ -43,7 +51,7 @@ class PluginTest extends FlatSpec with Matchers {
     appId
   }
 
-  private def check(envVarName: String, deployApp: String => String)(verifier: String => Unit): Unit = {
+  private def check(envVarName: String, deployApp: String => String, timeout: java.time.Duration = java.time.Duration.ofSeconds(30))(verifier: String => Unit): Unit = {
     val client = new MarathonClient(marathonUrl)
     val eventStream = new MarathonEventStream(marathonUrl)
 
@@ -60,16 +68,16 @@ class PluginTest extends FlatSpec with Matchers {
     val agentClient = MesosAgentClient(mesosSlaveUrl)
     val state = agentClient.fetchState()
 
-    val envVarValue = agentClient.waitForStdOutContentsMatch(envVarName, state.frameworks(0).executors(0),
-      o => EnvAppCmd.extractEnvValue(envVarName, o),
-      java.time.Duration.ofSeconds(30))
-
-    verifier(envVarValue)
-
-    client.delete(appId)
-    val appRemovedFuture = eventStream.when(_.eventType.contains("deployment_success"))
-    Await.result(appRemovedFuture, Duration.create(20, TimeUnit.SECONDS))
-
-    eventStream.close()
+    try {
+      val envVarValue = agentClient.waitForStdOutContentsMatch(envVarName, state.frameworks(0).executors(0),
+        o => EnvAppCmd.extractEnvValue(envVarName, o),
+        timeout)
+      verifier(envVarValue)
+    } finally {
+      client.delete(appId)
+      val appRemovedFuture = eventStream.when(_.eventType.contains("deployment_success"))
+      Await.result(appRemovedFuture, Duration.create(20, TimeUnit.SECONDS))
+      eventStream.close()
+    }
   }
 }
