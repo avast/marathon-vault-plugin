@@ -73,7 +73,7 @@ services:
       - MARATHON_ENABLE_FEATURES=secrets
 
   vault:
-    image: vault
+    image: vault:0.9.6
     environment:
       - VAULT_DEV_ROOT_TOKEN_ID=testroottoken
       - SKIP_SETCAP=true # suppressing Vault's IPC lock behavior which causes problems in Travis (see https://github.com/hashicorp/docker-vault/issues/24)
