@@ -71,6 +71,13 @@ dependencies {
     testCompile 'io.github.openfeign:feign-gson:9.7.0'
 }
 
+test {
+    testLogging {
+        events 'failed'
+        exceptionFormat 'full'
+    }
+}
+
 task sourcesJar(type: Jar) {
     from sourceSets.main.allSource
     classifier = 'sources'
