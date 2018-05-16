@@ -1,14 +1,12 @@
 package com.avast.marathon.plugin.vault
 
 import java.nio.charset.StandardCharsets
-import java.util
 
 import io.netty.handler.codec.http.HttpHeaders
 import org.asynchttpclient.AsyncHandler.State
 import org.asynchttpclient._
 
 import scala.concurrent.{Future, Promise}
-import collection.JavaConversions._
 
 case class SSEvent(eventType: Option[String], eventData: String, eventId: Option[String])
 
@@ -133,11 +131,11 @@ class MarathonEventStream(marathonUrl: String) {
     .addHeader("Accept", "text/event-stream")
     .execute(new EventStreamAsyncHandler(onEventArrived, onEventStreamEnd))
 
-  private val listeners = new util.ArrayList[Listener]
+  private val listeners = scala.collection.mutable.Set.empty[Listener]
 
   private case class Listener(predicate: SSEvent => Boolean, promise: Promise[SSEvent])
 
-  def when(predicate: (SSEvent) => Boolean): Future[SSEvent] = {
+  def when(predicate: SSEvent => Boolean): Future[SSEvent] = {
     val promise = Promise[SSEvent]
     listeners.add(Listener(predicate, promise))
     promise.future

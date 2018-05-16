@@ -52,18 +52,19 @@ test.doFirst {
 }
 
 ext {
-    scalaVersion = '2.11'
-    scalaLibraryVersion = '2.11.12'
+    scalaVersion = System.getenv('SCALA_VERSION') ?: '2.12'
+    scalaLibraryVersion = System.getenv('SCALA_LIBRARY_VERSION') ?: '2.12.6'
+    marathonVersion = (System.getenv('MARATHON_VERSION') ?: '1.6.352').replace("v", "")
 }
 
 dependencies {
     compileOnly "org.scala-lang:scala-library:${scalaLibraryVersion}"
     compileOnly "org.slf4j:slf4j-api:1.7.10"
-    compileOnly "mesosphere.marathon:plugin-interface_2.11:1.4.5"
+    compileOnly "mesosphere.marathon:plugin-interface_${scalaVersion}:${marathonVersion}"
 
     compile "com.bettercloud:vault-java-driver:3.1.0"
 
-    testCompile "org.scalatest:scalatest_${scalaVersion}:2.2.5"
+    testCompile "org.scalatest:scalatest_${scalaVersion}:3.0.5"
     testCompile "junit:junit:4.12"
     testCompile 'org.mockito:mockito-core:2.18.3'
     testCompile 'org.asynchttpclient:async-http-client:2.4.7'
@@ -113,6 +114,6 @@ import com.jcabi.github.*
 task githubUpload {
     dependsOn tasks.bundle
     doLast {
-        new RtGithub(System.getenv("GITHUB_TOKEN")).repos().get(new Coordinates.Simple("avast", "marathon-vault-plugin")).releases().iterate().sort { -it.number() }.find().assets().upload(file(tasks.bundle.archivePath).bytes, 'application/tar+gzip', 'bundle.tar')
+        new RtGithub(System.getenv("GITHUB_TOKEN")).repos().get(new Coordinates.Simple("avast", "marathon-vault-plugin")).releases().iterate().sort { -it.number() }.find().assets().upload(file(tasks.bundle.archivePath).bytes, 'application/tar+gzip', "bundle_${scalaVersion}.tar")
     }
 }
