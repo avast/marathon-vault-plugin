@@ -7,8 +7,7 @@ import feign.codec.{Decoder, StringDecoder}
 import feign.{Feign, Param, RequestLine, Response}
 import feign.gson.GsonDecoder
 
-import collection.JavaConversions._
-import scala.beans.BeanInfo
+import scala.collection.JavaConverters._
 
 object MesosAgentClient {
   private val contentTypeHeader = "Content-Type"
@@ -20,10 +19,9 @@ object MesosAgentClient {
       .decoder(new Decoder {
         override def decode(response: Response, `type`: Type): AnyRef = {
           if (response.headers().containsKey(contentTypeHeader)) {
-            val value = response.headers().get(contentTypeHeader).head
+            val value = response.headers().get(contentTypeHeader).asScala.head
             if (value.contains("json")) return gson.decode(response, `type`)
           }
-
           string.decode(response, `type`)
         }
       })
@@ -35,18 +33,14 @@ object MesosAgentClient {
       val stdOutPath = s"${executor.directory}/stdout"
       var matchOption: Option[String] = None
       var stdOut: String = null
-
       val maxTime = Instant.now().plus(timeout)
-
       do {
         if (Instant.now().compareTo(maxTime) > 1) {
           throw new RuntimeException("Timed out when waiting for task stdout to match.")
         }
-
         stdOut = agentClient.download(stdOutPath)
         matchOption = EnvAppCmd.extractEnvValue(envVarName, stdOut)
       } while (matchOption.isEmpty)
-
       matchOption.get
     }
   }
@@ -55,17 +49,10 @@ object MesosAgentClient {
 trait MesosAgentClient {
   @RequestLine("GET /state")
   def fetchState(): MesosAgentState
-
   @RequestLine("GET /files/download?path={path}")
   def download(@Param("path") path: String): String
 }
 
-
-@BeanInfo
 case class MesosFramework(id: String, executors: Array[MesosExecutor])
-
-@BeanInfo
 case class MesosExecutor(id: String, name: String, directory: String)
-
-@BeanInfo
 case class MesosAgentState(frameworks: Array[MesosFramework])
