@@ -52,14 +52,14 @@ test.doFirst {
 }
 
 ext {
-    scalaVersion = '2.11'
-    scalaLibraryVersion = '2.11.12'
+    scalaVersion = System.getenv('SCALA_VERSION') ?: '2.11'
+    scalaLibraryVersion = System.getenv('SCALA_LIBRARY_VERSION') ?: '2.12.6'
 }
 
 dependencies {
     compileOnly "org.scala-lang:scala-library:${scalaLibraryVersion}"
     compileOnly "org.slf4j:slf4j-api:1.7.10"
-    compileOnly "mesosphere.marathon:plugin-interface_2.11:1.4.5"
+    compileOnly "mesosphere.marathon:plugin-interface_${scalaVersion}:1.4.5"
 
     compile "com.bettercloud:vault-java-driver:3.1.0"
 
