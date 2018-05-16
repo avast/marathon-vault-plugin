@@ -57,6 +57,8 @@ ext {
     marathonVersion = (System.getenv('MARATHON_VERSION') ?: '1.6.352').replace("v", "")
 }
 
+archivesBaseName = "marathon-vault-plugin_v${marathonVersion}"
+
 dependencies {
     compileOnly "org.scala-lang:scala-library:${scalaLibraryVersion}"
     compileOnly "org.slf4j:slf4j-api:1.7.10"
@@ -114,6 +116,6 @@ import com.jcabi.github.*
 task githubUpload {
     dependsOn tasks.bundle
     doLast {
-        new RtGithub(System.getenv("GITHUB_TOKEN")).repos().get(new Coordinates.Simple("avast", "marathon-vault-plugin")).releases().iterate().sort { -it.number() }.find().assets().upload(file(tasks.bundle.archivePath).bytes, 'application/tar+gzip', "bundle_${scalaVersion}.tar")
+        new RtGithub(System.getenv("GITHUB_TOKEN")).repos().get(new Coordinates.Simple("avast", "marathon-vault-plugin")).releases().iterate().sort { -it.number() }.find().assets().upload(file(tasks.bundle.archivePath).bytes, 'application/tar+gzip', "bundle_${marathonVersion}.tar")
     }
 }
