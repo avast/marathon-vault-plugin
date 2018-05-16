@@ -64,7 +64,7 @@ dependencies {
 
     compile "com.bettercloud:vault-java-driver:3.1.0"
 
-    testCompile "org.scalatest:scalatest_${scalaVersion}:2.2.5"
+    testCompile "org.scalatest:scalatest_${scalaVersion}:3.0.5"
     testCompile "junit:junit:4.12"
     testCompile 'org.mockito:mockito-core:2.18.3'
     testCompile 'org.asynchttpclient:async-http-client:2.4.7'
