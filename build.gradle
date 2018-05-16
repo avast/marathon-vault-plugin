@@ -113,6 +113,6 @@ import com.jcabi.github.*
 task githubUpload {
     dependsOn tasks.bundle
     doLast {
-        new RtGithub(System.getenv("GITHUB_TOKEN")).repos().get(new Coordinates.Simple("avast", "marathon-vault-plugin")).releases().iterate().sort { -it.number() }.find().assets().upload(file(tasks.bundle.archivePath).bytes, 'application/tar+gzip', 'bundle.tar')
+        new RtGithub(System.getenv("GITHUB_TOKEN")).repos().get(new Coordinates.Simple("avast", "marathon-vault-plugin")).releases().iterate().sort { -it.number() }.find().assets().upload(file(tasks.bundle.archivePath).bytes, 'application/tar+gzip', "bundle_${scalaVersion}.tar")
     }
 }
