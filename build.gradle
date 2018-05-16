@@ -54,7 +54,7 @@ test.doFirst {
 ext {
     scalaVersion = System.getenv('SCALA_VERSION') ?: '2.12'
     scalaLibraryVersion = System.getenv('SCALA_LIBRARY_VERSION') ?: '2.12.6'
-    marathonVersion = System.getenv('MARATHON_VERSION') ?: '1.6.352'
+    marathonVersion = (System.getenv('MARATHON_VERSION') ?: '1.6.352').replace("v", "")
 }
 
 dependencies {
