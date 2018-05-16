@@ -3,10 +3,10 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.avast.gradle:gradle-docker-compose-plugin:0.6.15'
+        classpath 'com.avast.gradle:gradle-docker-compose-plugin:0.7.1'
         classpath 'com.github.ben-manes:gradle-versions-plugin:0.17.0'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.0'
-        classpath 'com.jcabi:jcabi-github:0.33.1'
+        classpath 'com.jcabi:jcabi-github:0.38'
     }
 }
 
@@ -53,7 +53,7 @@ test.doFirst {
 
 ext {
     scalaVersion = '2.11'
-    scalaLibraryVersion = '2.11.11'
+    scalaLibraryVersion = '2.11.12'
 }
 
 dependencies {
@@ -61,14 +61,14 @@ dependencies {
     compileOnly "org.slf4j:slf4j-api:1.7.10"
     compileOnly "mesosphere.marathon:plugin-interface_2.11:1.4.5"
 
-    compile "com.bettercloud:vault-java-driver:3.0.0"
+    compile "com.bettercloud:vault-java-driver:3.1.0"
 
     testCompile "org.scalatest:scalatest_${scalaVersion}:2.2.5"
     testCompile "junit:junit:4.12"
-    testCompile 'org.mockito:mockito-core:2.15.0'
-    testCompile 'org.asynchttpclient:async-http-client:2.4.0'
-    testCompile 'io.github.openfeign:feign-core:9.5.1'
-    testCompile 'io.github.openfeign:feign-gson:9.5.1'
+    testCompile 'org.mockito:mockito-core:2.18.3'
+    testCompile 'org.asynchttpclient:async-http-client:2.4.7'
+    testCompile 'io.github.openfeign:feign-core:9.7.0'
+    testCompile 'io.github.openfeign:feign-gson:9.7.0'
 }
 
 task sourcesJar(type: Jar) {
