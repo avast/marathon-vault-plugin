@@ -16,7 +16,7 @@ import scala.util.{Failure, Success, Try}
 
 case class Configuration(address: String, token: String, sharedPathRoot: Option[String], privatePathRoot: Option[String], ssl: Option[SslConfiguration])
 case class SslConfiguration(verify: Option[Boolean], trustStoreFile: Option[String], keyStoreFile: Option[String], keyStorePassword: Option[String],
-                            pemFile: Option[String], clientPemFile: Option[String], clientKeyPemFile: Option[String])
+                            pemFile: Option[String], pemUTF8: Option[String], clientPemFile: Option[String], clientKeyPemFile: Option[String])
 
 class VaultPlugin extends RunSpecTaskProcessor with PluginConfiguration {
 
@@ -39,6 +39,7 @@ class VaultPlugin extends RunSpecTaskProcessor with PluginConfiguration {
       sc.trustStoreFile.foreach(f => sslConfig.trustStoreFile(new File(f)))
       sc.keyStoreFile.foreach(f => sslConfig.keyStoreFile(new File(f), sc.keyStorePassword.getOrElse("")))
       sc.pemFile.foreach(f => sslConfig.pemFile(new File(f)))
+      sc.pemUTF8.foreach(s => sslConfig.pemUTF8(s))
       sc.clientPemFile.foreach(f => sslConfig.clientPemFile(new File(f)))
       sc.clientKeyPemFile.foreach(f => sslConfig.clientKeyPemFile(new File(f)))
     })
